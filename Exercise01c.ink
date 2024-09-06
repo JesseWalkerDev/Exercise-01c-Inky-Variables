@@ -1,49 +1,62 @@
-/*
-This is a comment block. It won't be read as an Ink story.
-Comments are very useful for leaving ideas for story and functionalty
+VAR die = 6
+VAR p_roll = 1
+VAR c_roll = 1
+VAR money = 50
 
-This exercise will demonstrate the following in the example video:
- - Variable types: integer, float, boolean
- - Variable assignment
- - Printing variables
- - Variable checking
- 
- In the assignment:
- - Add four more knots
- - Assign at least TWO new variables through player choices
- - Print at least one of the variables to the player in a passage
- - Check the value of a variable and have it do something
-*/
+-> rules
 
+== rules ==
+You can make a bet. You roll a die and I roll a die. If the number you roll is higher than my number, I pay you the number on my die. If I roll a number higher than yours, you pay me the number on your die.
++ [{Begin|Continue}]
+-> bet
 
+== bet ==
+{ money <= 0: -> broke}
 
--> cave_mouth
+Your balance is: {money}.
+-
+    + [Roll a d6]
+        ~die = 6
+    + [Roll a d10]
+        ~die = 10
+    + [Roll a d20]
+        ~die = 20
+    + [Roll a d30]
+        ~die = 30
+    + [Rules] -> rules
+-
+-> roll_die
 
-== cave_mouth ==
-You are at the enterance to a cave. {not torch_pickup:There is a torch on the floor.} The cave extends to the east and west.
+== roll_die
+You roll a d{die}...
+~ p_roll = RANDOM(1, die)
+You get: {p_roll}
+{ RANDOM(1,4):
+    - 1: ~ die = 6
+    - 2: ~ die = 10
+    - 3: ~ die = 20
+    - 4: ~ die = 30
+}
+I roll a d{die}...
+~ c_roll = RANDOM(1, die)
+I get: {c_roll}.
+{
+- p_roll > c_roll:
+    You win! the number on my die is {c_roll}, so I pay you that much.
+    ~ money += c_roll
+    + [+ {c_roll}] -> bet
+- p_roll < c_roll:
+    I win! the number on your die is {p_roll}, so you pay me that much.
+    ~ money -= p_roll
+    + [- {p_roll}] -> bet
+- else:
+    It's a tie! Neither of us pay anything.
+    + [Continue] -> bet
+}
+-> DONE
 
-
-
-+ [Take the east tunnel] -> east_tunnel
-+ [Take the west tunnel] -> west_tunnel
-* [Pick up the torch] -> torch_pickup
-
-== east_tunnel ==
-You are in the east tunnel. It is very dark, you can't see anything.
-* {torch_pickup} [Light Torch] -> east_tunnel_lit
-+ [Go Back] -> cave_mouth
--> END
-
-== west_tunnel ==
-You are in the west
-+ [Go Back] -> cave_mouth
--> END
-
-=== torch_pickup ===
-You now have a torch. May it light the way.
-* [Go Back] -> cave_mouth
--> END
-
-== east_tunnel_lit ==
-The light of your torch glints off of the thousands of coins in the room.
+== broke ==
+You have no more money to play with!
+Your final balance is: {money}.
+Better luck next time!
 -> END
